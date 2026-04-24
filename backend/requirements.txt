@@ -1,0 +1,6 @@
+fastapi[all]
+uvicorn[standard]
+python-dotenv
+pydantic[dotenv]
+google-generativeai
+structlog
