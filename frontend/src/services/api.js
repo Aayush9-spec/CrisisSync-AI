@@ -19,6 +19,7 @@ export const updateIncidentStatus = (id, data) => api.patch(`/incidents/${id}/st
 export const createEvent = (data) => api.post('/events', data);
 export const quickSOS = (data) => api.post('/events/quick', data);
 export const simulateIncident = () => api.post('/simulate');
+export const uploadVisualIntel = (id, image_data) => api.post(`/events/${id}/visual-intel`, { image_data });
 
 // AI Features
 export const chatWithAI = (data) => api.post('/chat', data);

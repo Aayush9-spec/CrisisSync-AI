@@ -72,6 +72,31 @@ const IncidentCard = ({ incident, role, onRespond, onResolve }) => {
             <p className="text-[11px] text-gray-400 leading-tight">{incident.ai_rationale}</p>
           </div>
         )}
+
+        {incident.visual_intel && (
+          <div className="p-4 rounded-xl bg-brand-success/5 border border-brand-success/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-[9px] font-black text-brand-success uppercase tracking-widest flex items-center gap-1">
+                <Camera size={10} /> Visual AI Intel
+              </div>
+              {incident.threat_confirmed && (
+                <div className="text-[8px] font-black text-brand-success uppercase flex items-center gap-1">
+                  <ShieldCheck size={10} /> Verified Threat
+                </div>
+              )}
+            </div>
+            <div className="flex gap-4">
+              {incident.image_url && (
+                <div className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0 cursor-pointer hover:scale-105 transition-transform" onClick={() => window.open(incident.image_url)}>
+                  <img src={incident.image_url} alt="Tactical Snap" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <p className="text-[11px] text-gray-400 leading-tight italic">
+                "{incident.visual_intel}"
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {(role === 'staff' || role === 'manager') && incident.status !== 'RESOLVED' && (

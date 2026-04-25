@@ -181,3 +181,38 @@ def get_analytics() -> dict:
         "by_type": by_type,
         "by_severity": by_severity,
     }
+
+async def add_visual_intel_to_incident(incident_id: str, image_data: str) -> dict:
+    """Analyze an image and update the incident with visual intelligence."""
+    from app.services.gemini_service import analyze_visual_threat
+    
+    # Analyze the image
+    visual_result = await analyze_visual_threat(image_data)
+    
+    # Update store
+    for incident in incidents_store:
+        if incident["id"] == incident_id:
+            incident["visual_intel"] = visual_result.get("visual_analysis")
+            incident["threat_confirmed"] = visual_result.get("confirmed_emergency", False)
+            incident["image_url"] = image_data  # Store for display
+            
+            # If vision says it's critical, upgrade severity
+            if visual_result.get("severity") == "CRITICAL":
+                incident["severity"] = "CRITICAL"
+
+            # Broadcast update
+            await manager.broadcast({
+                "type": "VISUAL_INTEL_UPDATE",
+                "data": {
+                    "incident_id": incident_id,
+                    "visual_intel": incident["visual_intel"],
+                    "threat_confirmed": incident["threat_confirmed"],
+                    "image_url": incident["image_url"],
+                    "new_severity": incident["severity"]
+                }
+            })
+            
+            logger.info("visual_intel_added", id=incident_id, threat=visual_result.get("threat_identified"))
+            return {"status": "success", "visual_intel": visual_result}
+            
+    return {"status": "error", "message": "Incident not found"}

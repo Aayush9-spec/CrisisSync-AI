@@ -74,6 +74,9 @@ class Incident(BaseModel):
     ai_recommendations: List[str] = Field(default_factory=list)
     priority_score: int = 5
     guest_communication: Optional[str] = None
+    visual_intel: Optional[str] = None  # AI analysis of uploaded images
+    image_url: Optional[str] = None     # URL or base64 of the image
+    threat_confirmed: bool = False      # AI confirmation via vision
     response_actions: List[str] = Field(default_factory=list)
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     updated_at: Optional[str] = None

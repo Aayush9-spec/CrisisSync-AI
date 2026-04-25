@@ -110,3 +110,8 @@ async def simulate_event():
 
     scenario = random.choice(scenarios)
     return await process_event(scenario)
+@router.post("/{incident_id}/visual-intel")
+async def add_visual_intel(incident_id: str, data: dict):
+    """Analyze an image for an existing incident and add visual intelligence."""
+    from app.services.event_engine import add_visual_intel_to_incident
+    return await add_visual_intel_to_incident(incident_id, data.get("image_data"))

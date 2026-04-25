@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   AlertCircle, 
@@ -12,13 +12,18 @@ import {
   MessageSquare,
   Bot,
   Send,
-  Zap
+  Zap,
+  Camera,
+  Eye,
+  ShieldCheck
 } from 'lucide-react';
-import { quickSOS, chatWithAI } from '../services/api';
+import toast from 'react-hot-toast';
+import { quickSOS, chatWithAI, uploadVisualIntel } from '../services/api';
 import MapView from '../components/MapView';
 
 const Guest = () => {
   const [status, setStatus] = useState('idle'); // idle, sending, success
+  const [incidentId, setIncidentId] = useState(null);
   const [showMap, setShowMap] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([
@@ -26,22 +31,50 @@ const Guest = () => {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [visualAnalysis, setVisualAnalysis] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const fileInputRef = useRef(null);
 
   const handleSOS = async () => {
     setStatus('sending');
     try {
-      await quickSOS({
+      const res = await quickSOS({
         type: 'EMERGENCY',
         location: 'Lobby - Floor 1',
         description: 'Direct SOS Triggered from Guest Portal',
         reporter_name: 'Guest User',
         reporter_role: 'guest'
       });
+      setIncidentId(res.data.incident.id);
       setTimeout(() => setStatus('success'), 1500);
     } catch (err) {
       console.error('SOS failed:', err);
       setStatus('idle');
+      toast.error('Network Error. Find nearest staff.');
     }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !incidentId) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result;
+      setIsUploading(true);
+      toast.loading('AI Analyzing Visual Threat...', { id: 'vision' });
+      try {
+        const res = await uploadVisualIntel(incidentId, base64);
+        setVisualAnalysis(res.data.visual_intel.visual_analysis);
+        toast.success('Visual Intelligence Verified', { id: 'vision' });
+      } catch (err) {
+        toast.error('Visual Analysis Failed', { id: 'vision' });
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleChatSend = async () => {
@@ -54,7 +87,7 @@ const Guest = () => {
       const res = await chatWithAI({ message: msg, role: 'guest', context: 'Guest SOS Portal' });
       setChatMessages(prev => [...prev, { role: 'bot', content: res.data.response }]);
     } catch (err) {
-      setChatMessages(prev => [...prev, { role: 'bot', content: 'Signal interference. Use SOS for immediate help.' }]);
+      setChatMessages(prev => [...prev, { role: 'bot', content: 'Signal interference. Use SOS.' }]);
     } finally {
       setChatLoading(false);
     }
@@ -97,11 +130,6 @@ const Guest = () => {
                       animate={{ scale: [1, 1.8, 1], opacity: [0.1, 0.2, 0.1] }}
                       transition={{ repeat: Infinity, duration: 2.5 }}
                       className="absolute w-64 h-64 bg-brand-accent rounded-full blur-3xl"
-                    />
-                    <motion.div 
-                      animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0.4, 0.2] }}
-                      transition={{ repeat: Infinity, duration: 2.5, delay: 0.5 }}
-                      className="absolute w-48 h-48 bg-brand-accent rounded-full blur-2xl"
                     />
                   </>
                 )}
@@ -163,38 +191,76 @@ const Guest = () => {
             <div className="w-32 h-32 bg-brand-success/20 rounded-full flex items-center justify-center mx-auto border-4 border-brand-success/30 shadow-[0_0_60px_rgba(34,197,94,0.3)]">
               <CheckCircle size={64} className="text-brand-success" />
             </div>
+            
             <div className="space-y-4">
-              <h2 className="text-5xl font-black text-white uppercase tracking-tighter">UNITS EN ROUTE</h2>
-              <p className="text-gray-400 font-medium px-6 leading-relaxed">
-                Security and tactical medical units have been dispatched to your signature. Remain in a safe location.
+              <h2 className="text-5xl font-black text-white uppercase tracking-tighter leading-none">UNITS<br/>EN ROUTE</h2>
+              <p className="text-gray-400 font-medium px-6 leading-relaxed text-center">
+                Security and tactical medical units have been dispatched.
               </p>
             </div>
-            <div className="p-8 glass rounded-[2.5rem] border-l-4 border-brand-info space-y-6 text-left relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5">
-                <Navigation size={80} className="text-brand-info" />
-              </div>
-              <div className="flex items-center gap-2 text-brand-info font-black text-xs uppercase tracking-widest relative">
-                <Navigation size={18} className="animate-pulse" /> Live Tracking Active
-              </div>
-              <div className="space-y-3 relative">
-                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                  <motion.div 
-                    animate={{ x: ['-100%', '100%'] }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-                    className="h-full w-1/3 bg-brand-info shadow-[0_0_15px_#3b82f6]"
-                  />
+
+            {/* Unique Feature: AI Vision Intelligence */}
+            <div className="p-6 glass rounded-[2.5rem] border border-white/5 space-y-4 w-full">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                  <Camera size={14} /> AI Visual Intel
                 </div>
-                <div className="flex justify-between items-center text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                  <span>Target Locked</span>
-                  <span className="text-brand-info">~1:45 Mins</span>
+                {visualAnalysis && (
+                  <div className="flex items-center gap-1 text-[8px] font-black text-brand-success uppercase">
+                    <ShieldCheck size={10} /> Verified
+                  </div>
+                )}
+              </div>
+              
+              {visualAnalysis ? (
+                <div className="space-y-3">
+                  <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                    <p className="text-[11px] text-gray-300 leading-tight italic text-left">
+                      "{visualAnalysis}"
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => fileInputRef.current.click()}
+                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase text-gray-400"
+                  >
+                    Update Visual Feed
+                  </button>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight text-center">
+                    Upload a photo for AI analysis to confirm threat type and urgency.
+                  </p>
+                  <button 
+                    onClick={() => fileInputRef.current.click()}
+                    disabled={isUploading}
+                    className="btn btn-primary w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+                  >
+                    {isUploading ? <RefreshCw className="animate-spin" size={16} /> : <Eye size={16} />}
+                    Tactical Snap
+                  </button>
+                </div>
+              )}
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImageUpload} 
+                accept="image/*" 
+                className="hidden" 
+              />
+            </div>
+
+            <div className="p-6 glass rounded-[2.5rem] border-l-4 border-brand-info space-y-4 text-left w-full">
+              <div className="flex items-center gap-2 text-brand-info font-black text-[10px] uppercase tracking-widest">
+                <Navigation size={14} className="animate-pulse" /> Live Tracking
+              </div>
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <motion.div animate={{ x: ['-100%', '100%'] }} transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }} className="h-full w-1/3 bg-brand-info shadow-[0_0_15px_#3b82f6]" />
               </div>
             </div>
-            <button 
-              onClick={() => setStatus('idle')}
-              className="btn glass w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/5"
-            >
-              Cancel Tactical Alert
+            
+            <button onClick={() => setStatus('idle')} className="btn glass w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest opacity-50 hover:opacity-100">
+              Cancel Alert
             </button>
           </motion.div>
         )}
@@ -221,10 +287,6 @@ const Guest = () => {
               </div>
               <div className="flex-1 glass rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl relative">
                 <MapView incidents={[]} />
-                <div className="absolute top-6 left-6 z-[1001] glass px-4 py-2 rounded-xl border border-brand-success/20 text-brand-success text-[10px] font-black uppercase flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-brand-success animate-pulse"></div>
-                  Your Secure Signal Active
-                </div>
               </div>
             </div>
           </motion.div>
@@ -284,7 +346,7 @@ const Guest = () => {
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleChatSend()}
                       placeholder="Request guidance..."
-                      className="flex-1 bg-brand-dark/50 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-brand-info/50 transition-all"
+                      className="flex-1 bg-brand-dark/50 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-brand-info/50 transition-all text-white"
                     />
                     <button 
                       onClick={handleChatSend}
@@ -293,9 +355,6 @@ const Guest = () => {
                     >
                       <Send size={24} />
                     </button>
-                  </div>
-                  <div className="mt-4 flex items-center justify-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.4em]">
-                    <Zap size={8} /> Protected by Gemini 2.0 Flash
                   </div>
                 </div>
               </div>

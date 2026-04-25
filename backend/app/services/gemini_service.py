@@ -115,6 +115,58 @@ async def analyze_incident(event_data: dict) -> dict:
         return _simulate_analysis(event_data)
 
 
+async def analyze_visual_threat(image_data: str) -> dict:
+    """
+    Use Gemini Multimodal capabilities to analyze an incident image.
+    Expects image_data as a base64 string.
+    """
+    if GEMINI_CONFIGURED:
+        try:
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            # Prepare image for Gemini
+            import base64
+            image_bytes = base64.b64decode(image_data.split(",")[-1])
+            
+            prompt = """You are CrisisSync Vision AI. Analyze this emergency image from a hospitality venue.
+            Identify the primary threat, its severity, and if it is a confirmed emergency.
+            
+            Respond ONLY with valid JSON:
+            {{
+              "threat_identified": "Specific name of threat",
+              "visual_analysis": "Brief description of what you see in the image",
+              "confidence_score": 0.0-1.0,
+              "confirmed_emergency": true/false,
+              "severity": "CRITICAL|HIGH|MEDIUM|LOW"
+            }}"""
+            
+            response = await model.generate_content_async([
+                prompt,
+                {"mime_type": "image/jpeg", "data": image_bytes}
+            ])
+            
+            text = response.text.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            return json.loads(text)
+            
+        except Exception as e:
+            logger.error("gemini_vision_failed", error=str(e))
+            return {
+                "threat_identified": "Visual analysis failed",
+                "visual_analysis": "The AI could not process the image due to a technical error.",
+                "confidence_score": 0,
+                "confirmed_emergency": False,
+                "severity": "MEDIUM"
+            }
+    return {
+        "threat_identified": "Vision AI Simulation",
+        "visual_analysis": "In simulation mode, image analysis is bypassed.",
+        "confidence_score": 0.5,
+        "confirmed_emergency": True,
+        "severity": "HIGH"
+    }
+
+
 async def chat_response(message: str, role: str = "guest", context: str = "", incident_id: Optional[str] = None) -> str:
     """Generate an AI chat response for emergency guidance."""
     if GEMINI_CONFIGURED:
