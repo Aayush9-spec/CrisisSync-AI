@@ -70,7 +70,10 @@ class Incident(BaseModel):
     guests_affected: Optional[int] = None
     assigned_to: List[str] = Field(default_factory=list)
     ai_analysis: Optional[str] = None
+    ai_rationale: Optional[str] = None
     ai_recommendations: List[str] = Field(default_factory=list)
+    priority_score: int = 5
+    guest_communication: Optional[str] = None
     response_actions: List[str] = Field(default_factory=list)
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     updated_at: Optional[str] = None

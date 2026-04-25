@@ -1,6 +1,7 @@
 # CrisisSync AI — Agent Build Specification
 
 ## Goal
+You are a senior product designer + frontend engineer.
 Build a **production-ready, hackathon-winning** AI-powered crisis response system for hospitality venues that leverages Google technologies (Gemini AI, Google Cloud, Firebase) to instantly detect, report, and coordinate emergency responses across a decentralized hospitality ecosystem.
 
 ## Hackathon Context

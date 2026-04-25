@@ -1,108 +1,52 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --neon-red: #ff3131;
-  --neon-blue: #00d2ff;
-  --neon-green: #39ff14;
-  --neon-purple: #bc13fe;
-  --bg-deep: #020617;
-  --panel-glass: rgba(15, 23, 42, 0.7);
-}
-
 @layer base {
   body {
-    @apply bg-brand-dark text-slate-200 antialiased overflow-x-hidden font-sans;
-    background: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #020617 80%);
-  }
-  
-  ::selection {
-    @apply bg-brand-info/30 text-white;
+    @apply bg-brand-dark text-gray-200 antialiased selection:bg-brand-accent/30;
   }
 }
 
 @layer components {
-  .futuristic-panel {
-    @apply bg-brand-surface/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)];
-    position: relative;
-    overflow: hidden;
+  .glass {
+    @apply bg-brand-surface/60 backdrop-blur-xl border border-white/5;
+  }
+  
+  .btn {
+    @apply px-4 py-2 rounded-lg font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+  }
+  
+  .btn-primary {
+    @apply bg-brand-info text-white hover:bg-blue-600 shadow-lg shadow-blue-500/20;
+  }
+  
+  .btn-success {
+    @apply bg-brand-success text-white hover:bg-green-600 shadow-lg shadow-green-500/20;
+  }
+  
+  .btn-danger {
+    @apply bg-brand-accent text-white hover:bg-red-600 shadow-lg shadow-red-500/20;
   }
 
-  .futuristic-panel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  }
-
-  .neon-glow-red { @apply shadow-[0_0_20px_rgba(255,49,49,0.3)] border-red-500/30; }
-  .neon-glow-blue { @apply shadow-[0_0_20px_rgba(0,210,255,0.3)] border-blue-500/30; }
-  .neon-glow-green { @apply shadow-[0_0_20px_rgba(57,255,20,0.3)] border-green-500/30; }
-  .neon-glow-purple { @apply shadow-[0_0_20px_rgba(188,19,254,0.3)] border-purple-500/30; }
-
-  .cyber-text {
-    @apply font-mono uppercase tracking-[0.2em] text-[10px] font-black;
-  }
-
-  .btn-cyber {
-    @apply px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all duration-300 relative overflow-hidden flex items-center justify-center gap-2;
+  .stat-card {
+    @apply glass p-6 rounded-2xl flex flex-col gap-2 relative overflow-hidden;
   }
 }
 
-/* Futuristic Scanline Effect */
-.scanline {
-  width: 100%;
-  height: 100px;
-  z-index: 99;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 210, 255, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
-  opacity: 0.1;
-  position: absolute;
-  bottom: 100%;
-  animation: scanline 10s linear infinite;
-  pointer-events: none;
+/* Custom scrollbar for command center look */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20;
 }
 
-@keyframes scanline {
-  0% { bottom: 100%; }
-  100% { bottom: -100px; }
+/* Leaflet dark theme fix */
+.leaflet-container {
+  @apply rounded-2xl filter invert brightness-[0.8] contrast-[1.2] grayscale;
 }
-
-/* Glitch Effect */
-.glitch-hover:hover {
-  animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
-}
-
-@keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { 
-  background: rgba(0, 210, 255, 0.2); 
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 210, 255, 0.5); }
-
-/* Grid Background */
-.bg-grid {
-  background-size: 40px 40px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-}
-
-.text-glow-blue { text-shadow: 0 0 10px rgba(0, 210, 255, 0.5); }
-.text-glow-red { text-shadow: 0 0 10px rgba(255, 49, 49, 0.5); }

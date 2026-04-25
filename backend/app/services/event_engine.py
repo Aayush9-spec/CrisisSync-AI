@@ -38,10 +38,13 @@ async def process_event(event_data: dict) -> dict:
         room=event_data.get("room"),
         guests_affected=event_data.get("guests_affected"),
         severity=ai_result.get("severity", "MEDIUM"),
+        priority_score=ai_result.get("priority_score", 5),
         status="ACTIVE",
         assigned_to=ai_result.get("assigned_teams", []),
         ai_analysis=ai_result.get("analysis", ""),
+        ai_rationale=ai_result.get("rationale", ""),
         ai_recommendations=ai_result.get("recommendations", []),
+        guest_communication=ai_result.get("guest_communication", ""),
         coordinates=event_data.get("coordinates"),
     )
 
