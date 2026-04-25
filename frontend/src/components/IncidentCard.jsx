@@ -40,8 +40,12 @@ const IncidentCard = ({ incident, role, onRespond, onResolve }) => {
           </div>
         </div>
         
-        <div className="text-right">
-          <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Status</div>
+        <div className="text-right flex flex-col items-end gap-2">
+          <div className="flex items-center gap-1">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className={`w-1 h-3 rounded-full ${i < (incident.priority_score || 5) ? `bg-${priorityColor}` : 'bg-white/5'}`}></div>
+            ))}
+          </div>
           <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${
             incident.status === 'RESOLVED' ? 'bg-brand-success/10 text-brand-success border-brand-success/20' : 
             incident.status === 'IN_PROGRESS' ? 'bg-brand-info/10 text-brand-info border-brand-info/20' : 
@@ -57,9 +61,18 @@ const IncidentCard = ({ incident, role, onRespond, onResolve }) => {
         <span className="text-xs font-bold text-gray-300">{incident.location}</span>
       </div>
 
-      <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-6 font-medium italic">
-        "{incident.description || 'No additional details provided.'}"
-      </p>
+      <div className="space-y-4 mb-6">
+        <p className="text-xs text-gray-500 leading-relaxed font-medium italic">
+          "{incident.description || 'No additional details provided.'}"
+        </p>
+
+        {incident.ai_rationale && (
+          <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 space-y-2">
+            <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Tactical Rationale</div>
+            <p className="text-[11px] text-gray-400 leading-tight">{incident.ai_rationale}</p>
+          </div>
+        )}
+      </div>
 
       {(role === 'staff' || role === 'manager') && incident.status !== 'RESOLVED' && (
         <div className="flex gap-3 mt-auto">
