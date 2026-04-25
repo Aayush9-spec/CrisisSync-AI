@@ -3,6 +3,11 @@
 ## Vision
 Hospitality venues face unpredictable, high-stakes emergencies that demand instantaneous, coordinated reactions. **CrisisSync AI** eliminates fragmented communication by creating a reliable bridge between distressed individuals, on-site staff, and emergency services using Google's Gemini AI.
 
+## Live Deployment
+- **Frontend (Live App)**: [https://crisis-sync-frontend-112365499000.us-central1.run.app](https://crisis-sync-frontend-112365499000.us-central1.run.app)
+- **Backend API**: [https://crisis-sync-backend-112365499000.us-central1.run.app](https://crisis-sync-backend-112365499000.us-central1.run.app)
+- **API Documentation**: [https://crisis-sync-backend-112365499000.us-central1.run.app/docs](https://crisis-sync-backend-112365499000.us-central1.run.app/docs)
+
 ## Key Features
 - **AI-Powered Incident Detection**: Leverages Google Gemini to analyze reports, classify severity, and auto-assign response teams.
 - **Real-Time Command Dashboard**: Live WebSocket-powered coordination hub for management and security.
