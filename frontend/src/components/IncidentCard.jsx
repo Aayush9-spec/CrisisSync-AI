@@ -1,91 +1,95 @@
 import React from 'react';
-import { MapPin, Clock, AlertTriangle, User, ChevronRight, ShieldAlert } from 'lucide-react';
+import { MapPin, Clock, Shield, CheckCircle, Navigation, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const IncidentCard = ({ incident, onClick }) => {
-  const isCritical = incident.severity === 'CRITICAL' || incident.severity === 'HIGH';
-  
-  const getSeverityStyles = (severity) => {
+const IncidentCard = ({ incident, role, onRespond, onResolve }) => {
+  const getPriorityColor = (severity) => {
     switch (severity) {
-      case 'CRITICAL': return 'border-red-500/50 bg-red-500/5 text-red-400';
-      case 'HIGH': return 'border-orange-500/50 bg-orange-500/5 text-orange-400';
-      case 'MEDIUM': return 'border-amber-500/50 bg-amber-500/5 text-amber-400';
-      default: return 'border-indigo-500/50 bg-indigo-500/5 text-indigo-400';
+      case 'CRITICAL': return 'brand-accent';
+      case 'HIGH': return 'brand-warning';
+      case 'MEDIUM': return 'brand-info';
+      default: return 'gray-500';
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'ACTIVE': return 'bg-red-500/20 text-red-500 border-red-500/30';
-      case 'IN_PROGRESS': return 'bg-amber-500/20 text-amber-500 border-amber-500/30';
-      case 'RESOLVED': return 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30';
-      default: return 'bg-white/10 text-white/50 border-white/20';
-    }
-  };
+  const priorityColor = getPriorityColor(incident.severity);
 
   return (
     <motion.div 
       layout
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -5 }}
-      className={`glass-card p-6 cursor-pointer border-l-[6px] ${isCritical ? 'animate-pulse-glow' : ''} ${getSeverityStyles(incident.severity)}`}
-      onClick={() => onClick && onClick(incident)}
+      className={`glass rounded-2xl p-6 relative border-l-4 border-${priorityColor} hover:shadow-2xl hover:shadow-${priorityColor}/10 transition-all duration-300 group`}
     >
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex items-start gap-4">
-          <div className={`p-3 rounded-2xl ${isCritical ? 'bg-red-500/20' : 'bg-indigo-500/20'}`}>
-            {isCritical ? <ShieldAlert size={24} /> : <AlertTriangle size={24} />}
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex gap-4">
+          <div className={`w-12 h-12 rounded-xl bg-${priorityColor}/10 flex items-center justify-center text-${priorityColor}`}>
+            <AlertCircle size={24} />
           </div>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-xl tracking-tight text-white">{incident.type}</h3>
-              <span className={`badge-premium ${getStatusBadge(incident.status)}`}>
-                {incident.status.replace('_', ' ')}
+            <h3 className="font-black text-lg text-white leading-tight uppercase tracking-tight">{incident.type}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-md bg-${priorityColor}/10 text-${priorityColor} border border-${priorityColor}/20`}>
+                {incident.severity}
               </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm font-medium text-muted">
-              <div className="flex items-center gap-1">
-                <MapPin size={14} className="text-indigo-400" />
-                <span>{incident.location}</span>
-              </div>
-              <span className="opacity-20">•</span>
-              <div className="flex items-center gap-1">
-                <Clock size={14} className="text-indigo-400" />
-                <span>{new Date(incident.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              </div>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                <Clock size={10} />
+                {new Date(incident.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
           </div>
         </div>
         
         <div className="text-right">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 opacity-40">Severity</div>
-          <div className={`text-sm font-extrabold uppercase tracking-widest ${isCritical ? 'text-red-400' : 'text-indigo-400'}`}>
-            {incident.severity}
-          </div>
+          <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Status</div>
+          <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${
+            incident.status === 'RESOLVED' ? 'bg-brand-success/10 text-brand-success border-brand-success/20' : 
+            incident.status === 'IN_PROGRESS' ? 'bg-brand-info/10 text-brand-info border-brand-info/20' : 
+            'bg-brand-accent/10 text-brand-accent border-brand-accent/20'
+          }`}>
+            {incident.status.replace('_', ' ')}
+          </span>
         </div>
-      </div>
-      
-      <div className="mt-5 p-4 rounded-xl bg-white/5 border border-white/5 text-sm text-gray-300 leading-relaxed italic">
-        {incident.description || 'No additional details provided for this event.'}
       </div>
 
-      <div className="flex justify-between items-center mt-5 pt-4 border-t border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] font-black text-white">
-            {incident.reporter_name.charAt(0)}
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-white">{incident.reporter_name}</span>
-            <span className="text-[10px] font-bold text-muted uppercase tracking-tighter">{incident.reporter_role}</span>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-1 text-xs font-bold text-indigo-400 group">
-          View Intel
-          <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-        </div>
+      <div className="flex items-center gap-2 mb-4 p-3 bg-brand-dark/50 rounded-xl border border-white/5">
+        <MapPin size={14} className="text-brand-info" />
+        <span className="text-xs font-bold text-gray-300">{incident.location}</span>
       </div>
+
+      <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-6 font-medium italic">
+        "{incident.description || 'No additional details provided.'}"
+      </p>
+
+      {(role === 'staff' || role === 'manager') && incident.status !== 'RESOLVED' && (
+        <div className="flex gap-3 mt-auto">
+          {incident.status === 'ACTIVE' && (
+            <button 
+              onClick={() => onRespond(incident.id)}
+              className="btn btn-primary flex-1 py-3 text-xs"
+            >
+              <Navigation size={14} />
+              DISPATCH TEAM
+            </button>
+          )}
+          {incident.status === 'IN_PROGRESS' && (
+            <button 
+              onClick={() => onResolve(incident.id)}
+              className="btn btn-success flex-1 py-3 text-xs"
+            >
+              <CheckCircle size={14} />
+              RESOLVE ALERT
+            </button>
+          )}
+        </div>
+      )}
+
+      {incident.status === 'RESOLVED' && (
+        <div className="flex items-center justify-center gap-2 p-3 bg-brand-success/5 rounded-xl border border-brand-success/10">
+          <Shield size={14} className="text-brand-success" />
+          <span className="text-[10px] font-black text-brand-success uppercase tracking-[0.2em]">Verified Secure</span>
+        </div>
+      )}
     </motion.div>
   );
 };

@@ -1,27 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  AlertCircle, 
+  Activity, 
+  Shield, 
+  CheckCircle, 
+  Plus, 
+  RefreshCw,
+  Zap,
+  Navigation,
+  Target
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { connectSocket, subscribeToEvents } from '../services/socket';
 import { getIncidents, simulateIncident, updateIncidentStatus, getAnalytics } from '../services/api';
 import IncidentCard from '../components/IncidentCard';
-import { Activity, Shield, AlertCircle, CheckCircle, Plus, RefreshCw, BarChart3, Bell, Zap, TrendingUp, Users } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import StatCard from '../components/StatCard';
+import MapView from '../components/MapView';
+import ActivityFeed from '../components/ActivityFeed';
 
-const Dashboard = () => {
+const Dashboard = ({ role }) => {
   const [incidents, setIncidents] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [activity, setActivity] = useState([]);
   const [isSimulating, setIsSimulating] = useState(false);
 
   const fetchData = async () => {
     try {
-      const [incidentsRes, statsRes] = await Promise.all([
+      const [incRes, statRes] = await Promise.all([
         getIncidents(),
         getAnalytics()
       ]);
-      setIncidents(incidentsRes.data.incidents);
-      setStats(statsRes.data);
-    } catch (error) {
-      console.error('Fetch error:', error);
+      setIncidents(incRes.data.incidents);
+      setStats(statRes.data);
+    } catch (err) {
+      console.error('Fetch failed:', err);
     } finally {
       setLoading(false);
     }
@@ -29,267 +42,184 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-    connectSocket('manager');
-    
+    connectSocket(role);
+
     const unsubscribe = subscribeToEvents((event) => {
       if (event.type === 'NEW_INCIDENT') {
         setIncidents(prev => [event.data, ...prev]);
+        setActivity(prev => [{
+          type: 'NEW_EVENT',
+          message: `${event.data.type} detected at ${event.data.location}`,
+          timestamp: new Date()
+        }, ...prev.slice(0, 19)]);
         fetchData();
       } else if (event.type === 'STATUS_UPDATE') {
         setIncidents(prev => prev.map(inc => 
           inc.id === event.data.incident_id ? { ...inc, status: event.data.new_status } : inc
         ));
+        setActivity(prev => [{
+          type: 'STATUS_UPDATE',
+          message: `Incident ${event.data.incident_id.substring(0, 8)} marked as ${event.data.new_status}`,
+          timestamp: new Date()
+        }, ...prev.slice(0, 19)]);
         fetchData();
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [role]);
+
+  const handleRespond = async (id) => {
+    try {
+      await updateIncidentStatus(id, { status: 'IN_PROGRESS', updated_by: 'Command Center' });
+    } catch (err) {
+      console.error('Respond failed:', err);
+    }
+  };
+
+  const handleResolve = async (id) => {
+    try {
+      await updateIncidentStatus(id, { status: 'RESOLVED', updated_by: 'Command Center' });
+    } catch (err) {
+      console.error('Resolve failed:', err);
+    }
+  };
 
   const handleSimulate = async () => {
     setIsSimulating(true);
     try {
       await simulateIncident();
-    } catch (error) {
-      console.error('Simulation failed:', error);
     } finally {
       setIsSimulating(false);
     }
   };
 
-  const handleUpdateStatus = async (id, status) => {
-    try {
-      await updateIncidentStatus(id, { status, updated_by: 'Command Ops' });
-    } catch (error) {
-      console.error('Update status failed:', error);
-    }
-  };
-
-  const StatCard = ({ icon: Icon, label, value, color, delay }) => (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className="glass-card p-6 flex flex-col gap-4 overflow-hidden relative group"
-    >
-      <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full opacity-10 blur-2xl ${color}`}></div>
-      <div className="flex justify-between items-start">
-        <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 ${color.replace('bg-', 'text-')}`}>
-          <Icon size={24} />
-        </div>
-        <div className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{label}</div>
-      </div>
-      <div className="flex items-baseline gap-2">
-        <div className="text-4xl font-black tracking-tighter text-white">{value}</div>
-        <div className="text-[10px] font-bold text-success flex items-center gap-1">
-          <TrendingUp size={10} /> +2.4%
-        </div>
-      </div>
-    </motion.div>
-  );
-
   return (
-    <div className="max-w-[1600px] mx-auto p-6 md:p-12 space-y-12">
-      {/* Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8"
-      >
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-black text-indigo-400 uppercase tracking-widest">
-            <Zap size={12} className="animate-pulse" />
-            AI Operations Active
-          </div>
-          <h1 className="heading-xl">COMMAND<br/><span className="text-gradient-primary">CENTER</span></h1>
-          <p className="text-muted text-lg max-w-xl font-medium leading-relaxed">
-            Real-time emergency intelligence and response coordination for premium hospitality venues. 
-            AI-driven prioritization for immediate life-safety actions.
-          </p>
-        </div>
-        
-        <div className="flex gap-4">
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSimulate} 
-            disabled={isSimulating}
-            className="btn-premium glass-card text-white hover:bg-white/10"
-          >
-            {isSimulating ? <RefreshCw className="animate-spin" size={18} /> : <Plus size={18} />}
-            Trigger Simulation
-          </motion.button>
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="btn-premium btn-premium-primary"
-          >
-            <Bell size={18} />
-            Alert Property
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* Analytics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard icon={AlertCircle} label="Active Alerts" value={stats?.active || 0} color="bg-red-500" delay={0.1} />
-        <StatCard icon={Activity} label="Avg Response" value={`${stats?.avg_response_time || 0}s`} color="bg-indigo-500" delay={0.2} />
-        <StatCard icon={Shield} label="Deployed Units" value={stats?.in_progress || 0} color="bg-amber-500" delay={0.3} />
-        <StatCard icon={Users} label="Total Managed" value={stats?.total_incidents || 0} color="bg-emerald-500" delay={0.4} />
+    <div className="flex flex-col gap-8 p-8">
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <StatCard 
+          icon={AlertCircle} 
+          label="Active Alerts" 
+          value={stats?.active || 0} 
+          trend="up" 
+          trendValue="12" 
+          color="bg-brand-accent" 
+          delay={0.1}
+        />
+        <StatCard 
+          icon={Navigation} 
+          label="Responding" 
+          value={stats?.in_progress || 0} 
+          trend="up" 
+          trendValue="5" 
+          color="bg-brand-info" 
+          delay={0.2}
+        />
+        <StatCard 
+          icon={CheckCircle} 
+          label="Resolved Today" 
+          value={stats?.resolved || 0} 
+          trend="up" 
+          trendValue="24" 
+          color="bg-brand-success" 
+          delay={0.3}
+        />
+        <StatCard 
+          icon={Activity} 
+          label="Avg Response" 
+          value={`${stats?.avg_response_time || 0}s`} 
+          trend="down" 
+          trendValue="8" 
+          color="bg-purple-500" 
+          delay={0.4}
+        />
       </div>
 
-      {/* Operational Hub */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-        {/* Incident Feed */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 min-h-[600px]">
+        {/* Left Column: Live Feed */}
         <div className="xl:col-span-8 space-y-8">
-          <div className="flex justify-between items-center px-2">
-            <h2 className="text-2xl font-extrabold flex items-center gap-3">
-              <div className="w-2 h-8 bg-indigo-500 rounded-full"></div>
-              Live Operations Feed
-            </h2>
-            <div className="flex items-center gap-4 text-[10px] font-black text-muted uppercase tracking-widest">
-              <span className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div> Critical
-              </span>
-              <span className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Active
-              </span>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 bg-brand-accent rounded-full"></div>
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight">Incident Nexus</h2>
             </div>
+            {role === 'manager' && (
+              <button 
+                onClick={handleSimulate}
+                disabled={isSimulating}
+                className="btn glass text-[10px] font-black uppercase tracking-widest hover:bg-white/5"
+              >
+                {isSimulating ? <RefreshCw className="animate-spin" size={14} /> : <Zap size={14} className="text-brand-warning" />}
+                Trigger Simulation
+              </button>
+            )}
           </div>
-          
-          <div className="space-y-6">
-            <AnimatePresence mode="popLayout">
-              {loading ? (
-                <motion.div key="loader" className="flex-center p-32">
-                  <RefreshCw className="animate-spin text-indigo-500" size={64} />
-                </motion.div>
-              ) : incidents.length === 0 ? (
-                <motion.div 
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="glass-card p-24 text-center space-y-6"
-                >
-                  <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex-center mx-auto border border-emerald-500/20">
-                    <CheckCircle size={48} className="text-emerald-500" />
+
+          {loading ? (
+            <div className="h-96 flex items-center justify-center">
+              <RefreshCw className="animate-spin text-brand-info" size={48} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <AnimatePresence mode="popLayout">
+                {incidents.filter(inc => inc.status !== 'RESOLVED').map(incident => (
+                  <IncidentCard 
+                    key={incident.id}
+                    incident={incident}
+                    role={role}
+                    onRespond={handleRespond}
+                    onResolve={handleResolve}
+                  />
+                ))}
+              </AnimatePresence>
+              
+              {incidents.filter(inc => inc.status !== 'RESOLVED').length === 0 && (
+                <div className="col-span-full h-64 glass rounded-3xl flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-brand-success/10 flex items-center justify-center text-brand-success">
+                    <CheckCircle size={32} />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white">All Clear</h3>
-                    <p className="text-muted mt-2">No active emergencies detected across the property.</p>
+                    <h3 className="text-lg font-bold text-white">All Sectors Secure</h3>
+                    <p className="text-xs text-gray-500 uppercase tracking-widest">No active threats detected</p>
                   </div>
-                </motion.div>
-              ) : (
-                incidents.map(incident => (
-                  <div key={incident.id} className="relative group">
-                    <IncidentCard 
-                      incident={incident} 
-                      onClick={() => setSelectedIncident(incident)}
-                    />
-                    
-                    <div className="absolute top-6 right-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                      {incident.status === 'ACTIVE' && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(incident.id, 'IN_PROGRESS'); }}
-                          className="btn-premium btn-premium-primary py-2 px-4 text-xs"
-                        >
-                          Deploy
-                        </button>
-                      )}
-                      {incident.status === 'IN_PROGRESS' && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(incident.id, 'RESOLVED'); }}
-                          className="btn-premium bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 text-xs"
-                        >
-                          Resolve
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
+                </div>
               )}
-            </AnimatePresence>
+            </div>
+          )}
+
+          {/* Map View Integration */}
+          <div className="h-[400px] glass rounded-3xl overflow-hidden relative group">
+            <div className="absolute top-6 left-6 z-10 flex items-center gap-2 bg-brand-dark/80 backdrop-blur px-4 py-2 rounded-xl border border-white/10">
+              <Target size={16} className="text-brand-accent" />
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">Geospatial Awareness</span>
+            </div>
+            <MapView incidents={incidents} />
           </div>
         </div>
 
-        {/* Intelligence Sidebar */}
-        <div className="xl:col-span-4">
-          <motion.div 
-            className="glass-card p-8 sticky top-32 space-y-8"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <div className="flex items-center gap-3">
-              <BarChart3 className="text-indigo-400" size={24} />
-              <h2 className="text-xl font-extrabold tracking-tight">AI Intelligence</h2>
-            </div>
-            
-            <AnimatePresence mode="wait">
-              {selectedIncident ? (
-                <motion.div 
-                  key={selectedIncident.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-8"
-                >
-                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Incident Signature</label>
-                    <div className="text-2xl font-extrabold text-white">{selectedIncident.type}</div>
-                    <div className="text-xs font-bold text-indigo-400 mt-1 uppercase tracking-tighter">ID: {selectedIncident.id}</div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-                      <Zap size={12} /> AI Strategy Analysis
-                    </label>
-                    <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 leading-relaxed text-sm italic text-indigo-100">
-                      "{selectedIncident.ai_analysis || 'Generating deep analysis...'}"
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Tactical Recommendations</label>
-                    <div className="space-y-3">
-                      {(selectedIncident.ai_recommendations || []).map((rec, i) => (
-                        <motion.div 
-                          key={i}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                          className="flex gap-3 text-sm font-medium text-gray-300 items-start"
-                        >
-                          <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex-center flex-shrink-0 text-[10px] font-black text-indigo-400">
-                            {i + 1}
-                          </div>
-                          {rec}
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-white/5">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-3 block">Deployment Registry</label>
-                    <div className="flex flex-wrap gap-2">
-                      {(selectedIncident.assigned_to || []).map((team, i) => (
-                        <span key={i} className="px-3 py-1.5 bg-white/5 rounded-lg text-[10px] font-black border border-white/10 uppercase tracking-wider text-white">
-                          {team}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <div className="py-20 text-center space-y-6">
-                  <div className="w-20 h-20 bg-white/5 rounded-full flex-center mx-auto border border-white/10">
-                    <Shield size={32} className="text-white/20" />
-                  </div>
-                  <p className="text-sm font-medium text-muted max-w-[200px] mx-auto">
-                    Select an operational incident from the feed to unlock AI intelligence and tactical insights.
-                  </p>
+        {/* Right Column: Activity Feed */}
+        <div className="xl:col-span-4 flex flex-col gap-8">
+          <div className="flex-1">
+            <ActivityFeed events={activity} />
+          </div>
+          
+          <div className="glass p-6 rounded-3xl space-y-4">
+            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Personnel</h4>
+            <div className="flex -space-x-3 overflow-hidden">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="inline-block h-10 w-10 rounded-full ring-4 ring-brand-surface bg-brand-dark flex items-center justify-center font-bold text-[10px] text-gray-400">
+                  U-{i}
                 </div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+              ))}
+              <div className="flex items-center justify-center h-10 w-10 rounded-full ring-4 ring-brand-surface bg-white/5 text-[10px] font-bold text-gray-400">
+                +12
+              </div>
+            </div>
+            <button className="btn btn-primary w-full py-3 text-xs uppercase tracking-[0.2em]">
+              Dispatch Global Alert
+            </button>
+          </div>
         </div>
       </div>
     </div>

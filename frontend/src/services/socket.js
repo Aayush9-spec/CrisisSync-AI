@@ -1,37 +1,33 @@
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
+
 let socket = null;
 let listeners = [];
 
-export const connectSocket = (role = 'guest') => {
-  const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
-  
+export const connectSocket = (role) => {
   if (socket) {
     socket.close();
   }
 
-  socket = new WebSocket(`${WS_URL}?role=${role}`);
+  const url = `${WS_URL}/${role}/${Math.random().toString(36).substring(7)}`;
+  socket = new WebSocket(url);
 
   socket.onopen = () => {
-    console.log(`Connected to CrisisSync WS as ${role}`);
+    console.log(`[WS] Connected as ${role}`);
   };
 
   socket.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      listeners.forEach(callback => callback(data));
-    } catch (error) {
-      console.error('WS Message Error:', error);
-      listeners.forEach(callback => callback({ type: 'MESSAGE', data: event.data }));
-    }
+    const data = JSON.parse(event.data);
+    listeners.forEach(callback => callback(data));
   };
 
   socket.onclose = () => {
-    console.log('Disconnected from CrisisSync WS');
-    // Simple reconnect logic
+    console.log('[WS] Disconnected');
+    // Simple reconnect
     setTimeout(() => connectSocket(role), 3000);
   };
 
-  socket.onerror = (error) => {
-    console.error('WS Socket Error:', error);
+  socket.onerror = (err) => {
+    console.error('[WS] Error:', err);
   };
 };
 
@@ -42,8 +38,9 @@ export const subscribeToEvents = (callback) => {
   };
 };
 
-export const sendMessage = (data) => {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(data));
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.close();
+    socket = null;
   }
 };
