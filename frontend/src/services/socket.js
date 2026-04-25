@@ -1,4 +1,4 @@
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws';
+const WS_URL = import.meta.env.VITE_WS_URL || 'wss://crisis-sync-backend-112365499000.us-central1.run.app/ws';
 
 let socket = null;
 let listeners = [];

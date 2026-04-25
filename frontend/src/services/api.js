@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://crisis-sync-backend-112365499000.us-central1.run.app';
 
 const api = axios.create({
   baseURL: API_URL,
