@@ -14,7 +14,7 @@ function App() {
         {/* Only show Sidebar and Navbar for Staff/Manager roles */}
         {(role === 'staff' || role === 'manager') && <Sidebar />}
         
-        <div className="flex-1 flex flex-col">
+        <div className={`flex-1 flex flex-col transition-all duration-700 ${(role === 'staff' || role === 'manager') ? 'pl-24 lg:pl-72' : ''}`}>
           {(role === 'staff' || role === 'manager') && (
             <Navbar role={role} setRole={setRole} />
           )}
