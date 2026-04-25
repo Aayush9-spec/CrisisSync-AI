@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { Shield, LayoutDashboard, User, Activity, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -10,7 +10,7 @@ const Navbar = () => {
       animate={{ y: 0, opacity: 1 }}
       className="glass-card sticky top-6 mx-6 md:mx-12 mt-6 z-50 px-8 py-4 flex justify-between items-center"
     >
-      <div className="flex items-center gap-4">
+      <Link to="/" className="flex items-center gap-4 cursor-pointer">
         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-xl">
           <Shield className="text-white" size={26} />
         </div>
@@ -20,15 +20,15 @@ const Navbar = () => {
           </span>
           <span className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] mt-0.5">Hospitality Command</span>
         </div>
-      </div>
+      </Link>
 
       <div className="hidden md:flex items-center bg-white/5 p-1.5 rounded-2xl border border-white/5">
         <NavLink 
-          to="/" 
+          to="/sos" 
           className={({isActive}) => `flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all duration-300 font-bold text-sm ${isActive ? 'bg-white/10 text-white shadow-lg' : 'text-muted hover:text-white hover:bg-white/5'}`}
         >
           <User size={18} />
-          <span>Guest Portal</span>
+          <span>Guest SOS</span>
         </NavLink>
         <NavLink 
           to="/dashboard" 

@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import GuestPortal from './pages/GuestPortal';
 import Dashboard from './pages/Dashboard';
 
+import Home from './pages/Home';
+
 function App() {
   return (
     <Router>
@@ -11,7 +13,8 @@ function App() {
         <Navbar />
         <main className="flex-1">
           <Routes>
-            <Route path="/" element={<GuestPortal />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/sos" element={<GuestPortal />} />
             <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </main>
