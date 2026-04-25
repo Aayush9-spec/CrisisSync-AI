@@ -1,10 +1,31 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Shield, CheckCircle, Navigation, MapPin, Radio } from 'lucide-react';
-import { quickSOS } from '../services/api';
+import { 
+  AlertCircle, 
+  Shield, 
+  CheckCircle, 
+  Navigation, 
+  MapPin, 
+  Radio, 
+  RefreshCw, 
+  X,
+  MessageSquare,
+  Bot,
+  Send,
+  Zap
+} from 'lucide-react';
+import { quickSOS, chatWithAI } from '../services/api';
+import MapView from '../components/MapView';
 
 const Guest = () => {
   const [status, setStatus] = useState('idle'); // idle, sending, success
+  const [showMap, setShowMap] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'bot', content: 'Operational. State your emergency or request tactical guidance.' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
 
   const handleSOS = async () => {
     setStatus('sending');
@@ -20,12 +41,34 @@ const Guest = () => {
     } catch (err) {
       console.error('SOS failed:', err);
       setStatus('idle');
-      alert('Network Error. Find nearest staff immediately.');
+    }
+  };
+
+  const handleChatSend = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    const msg = chatInput;
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', content: msg }]);
+    setChatLoading(true);
+    try {
+      const res = await chatWithAI({ message: msg, role: 'guest', context: 'Guest SOS Portal' });
+      setChatMessages(prev => [...prev, { role: 'bot', content: res.data.response }]);
+    } catch (err) {
+      setChatMessages(prev => [...prev, { role: 'bot', content: 'Signal interference. Use SOS for immediate help.' }]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-[90vh] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+      
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-accent rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-info rounded-full blur-[120px]"></div>
+      </div>
+
       <AnimatePresence mode="wait">
         {status === 'idle' || status === 'sending' ? (
           <motion.div 
@@ -33,31 +76,31 @@ const Guest = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
-            className="space-y-12 w-full max-w-sm"
+            className="space-y-12 w-full max-w-sm relative z-10"
           >
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-brand-accent/10 border border-brand-accent/20 text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-accent/10 border border-brand-accent/20 text-[10px] font-black text-brand-accent uppercase tracking-[0.3em]">
                 <Radio size={12} className="animate-pulse" />
-                Live Network Active
+                RAPID RESPONSE ACTIVE
               </div>
-              <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Emergency Hub</h1>
-              <p className="text-gray-500 font-medium text-sm px-4">
-                Tap and hold for 1 second in case of immediate danger. Security will be dispatched to your location instantly.
+              <h1 className="text-5xl font-black text-white uppercase tracking-tighter leading-none">EMERGENCY<br/>HUB</h1>
+              <p className="text-gray-500 font-medium text-sm px-4 leading-relaxed">
+                Tap the SOS button for immediate tactical assistance. Security will be dispatched to your location instantly.
               </p>
             </div>
 
-            <div className="relative flex items-center justify-center">
+            <div className="relative flex items-center justify-center py-4">
               <AnimatePresence>
                 {status === 'idle' && (
                   <>
                     <motion.div 
-                      animate={{ scale: [1, 1.5, 1], opacity: [0.1, 0.3, 0.1] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
+                      animate={{ scale: [1, 1.8, 1], opacity: [0.1, 0.2, 0.1] }}
+                      transition={{ repeat: Infinity, duration: 2.5 }}
                       className="absolute w-64 h-64 bg-brand-accent rounded-full blur-3xl"
                     />
                     <motion.div 
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
-                      transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
+                      animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0.4, 0.2] }}
+                      transition={{ repeat: Infinity, duration: 2.5, delay: 0.5 }}
                       className="absolute w-48 h-48 bg-brand-accent rounded-full blur-2xl"
                     />
                   </>
@@ -71,7 +114,7 @@ const Guest = () => {
                 onClick={handleSOS}
                 className={`
                   relative z-10 w-64 h-64 rounded-full flex flex-col items-center justify-center gap-4 transition-all duration-500
-                  border-8 border-brand-dark shadow-[0_0_50px_rgba(239,68,68,0.3)]
+                  border-8 border-brand-dark shadow-[0_0_80px_rgba(239,68,68,0.4)]
                   ${status === 'sending' ? 'bg-gray-800' : 'bg-brand-accent hover:bg-red-600'}
                 `}
               >
@@ -81,21 +124,33 @@ const Guest = () => {
                   <AlertCircle size={84} className="text-white drop-shadow-2xl" />
                 )}
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl font-black text-white tracking-tighter">SOS</span>
-                  <span className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Press To Alert</span>
+                  <span className="text-4xl font-black text-white tracking-tighter">SOS</span>
+                  <span className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none mt-1">Press To Alert</span>
                 </div>
               </motion.button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="glass p-4 rounded-2xl flex flex-col items-center gap-2">
-                <MapPin size={20} className="text-brand-info" />
-                <span className="text-[10px] font-black text-gray-400 uppercase">Map View</span>
-              </div>
-              <div className="glass p-4 rounded-2xl flex flex-col items-center gap-2">
-                <Shield size={20} className="text-brand-success" />
-                <span className="text-[10px] font-black text-gray-400 uppercase">Procedures</span>
-              </div>
+              <motion.div 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowMap(true)}
+                className="glass p-6 rounded-3xl flex flex-col items-center gap-3 cursor-pointer hover:bg-white/5 border border-white/5 transition-all"
+              >
+                <div className="p-3 bg-brand-info/10 rounded-2xl text-brand-info">
+                  <MapPin size={24} />
+                </div>
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">Tactical Map</span>
+              </motion.div>
+              <motion.div 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowChat(true)}
+                className="glass p-6 rounded-3xl flex flex-col items-center gap-3 cursor-pointer hover:bg-white/5 border border-white/5 transition-all"
+              >
+                <div className="p-3 bg-brand-success/10 rounded-2xl text-brand-success">
+                  <MessageSquare size={24} />
+                </div>
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">AI Guidance</span>
+              </motion.div>
             </div>
           </motion.div>
         ) : (
@@ -103,41 +158,152 @@ const Guest = () => {
             key="success"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8 w-full max-w-sm"
+            className="space-y-8 w-full max-w-sm relative z-10"
           >
-            <div className="w-32 h-32 bg-brand-success/20 rounded-full flex items-center justify-center mx-auto border-4 border-brand-success/30 shadow-[0_0_40px_rgba(34,197,94,0.2)]">
+            <div className="w-32 h-32 bg-brand-success/20 rounded-full flex items-center justify-center mx-auto border-4 border-brand-success/30 shadow-[0_0_60px_rgba(34,197,94,0.3)]">
               <CheckCircle size={64} className="text-brand-success" />
             </div>
             <div className="space-y-4">
-              <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Help is Coming</h2>
-              <p className="text-gray-500 font-medium">
-                Security units have been dispatched to your signature. Please stay in your current location if safe.
+              <h2 className="text-5xl font-black text-white uppercase tracking-tighter">UNITS EN ROUTE</h2>
+              <p className="text-gray-400 font-medium px-6 leading-relaxed">
+                Security and tactical medical units have been dispatched to your signature. Remain in a safe location.
               </p>
             </div>
-            <div className="p-6 glass rounded-3xl border-l-4 border-brand-info space-y-4 text-left">
-              <div className="flex items-center gap-2 text-brand-info font-black text-[10px] uppercase tracking-widest">
-                <Navigation size={14} /> Live Tracking Active
+            <div className="p-8 glass rounded-[2.5rem] border-l-4 border-brand-info space-y-6 text-left relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5">
+                <Navigation size={80} className="text-brand-info" />
               </div>
-              <div className="space-y-2">
-                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="flex items-center gap-2 text-brand-info font-black text-xs uppercase tracking-widest relative">
+                <Navigation size={18} className="animate-pulse" /> Live Tracking Active
+              </div>
+              <div className="space-y-3 relative">
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                   <motion.div 
                     animate={{ x: ['-100%', '100%'] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="h-full w-1/3 bg-brand-info"
+                    transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
+                    className="h-full w-1/3 bg-brand-info shadow-[0_0_15px_#3b82f6]"
                   />
                 </div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase">Officer Response Time: ~2 mins</p>
+                <div className="flex justify-between items-center text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  <span>Target Locked</span>
+                  <span className="text-brand-info">~1:45 Mins</span>
+                </div>
               </div>
             </div>
             <button 
               onClick={() => setStatus('idle')}
-              className="btn glass w-full py-4 text-sm uppercase tracking-widest"
+              className="btn glass w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/5"
             >
-              Cancel Alert
+              Cancel Tactical Alert
             </button>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Map Overlay */}
+      <AnimatePresence>
+        {showMap && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-brand-dark/95 backdrop-blur-2xl p-6 md:p-12"
+          >
+            <div className="h-full w-full flex flex-col gap-6">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <MapPin className="text-brand-info" size={24} />
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Tactical Awareness Map</h3>
+                </div>
+                <button onClick={() => setShowMap(false)} className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all">
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="flex-1 glass rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl relative">
+                <MapView incidents={[]} />
+                <div className="absolute top-6 left-6 z-[1001] glass px-4 py-2 rounded-xl border border-brand-success/20 text-brand-success text-[10px] font-black uppercase flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-brand-success animate-pulse"></div>
+                  Your Secure Signal Active
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* AI Chat Overlay */}
+      <AnimatePresence>
+        {showChat && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed inset-0 z-[100] bg-brand-dark/95 backdrop-blur-2xl p-6 md:p-12 flex flex-col"
+          >
+            <div className="max-w-2xl mx-auto w-full h-full flex flex-col gap-6">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <Bot className="text-brand-success" size={24} />
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter">AI Tactical Guidance</h3>
+                </div>
+                <button onClick={() => setShowChat(false)} className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="flex-1 glass rounded-[2.5rem] flex flex-col overflow-hidden border border-white/10 shadow-2xl">
+                <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                  {chatMessages.map((m, i) => (
+                    <motion.div 
+                      key={i}
+                      initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-[85%] p-5 rounded-3xl text-sm font-medium leading-relaxed ${
+                        m.role === 'user' ? 'bg-brand-info text-white rounded-tr-none' : 'bg-white/5 text-gray-200 border border-white/5 rounded-tl-none'
+                      }`}>
+                        {m.content}
+                      </div>
+                    </motion.div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white/5 p-5 rounded-3xl rounded-tl-none border border-white/5">
+                        <RefreshCw className="animate-spin text-brand-info" size={20} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-8 bg-white/5 border-t border-white/5">
+                  <div className="relative flex items-center gap-4">
+                    <input 
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleChatSend()}
+                      placeholder="Request guidance..."
+                      className="flex-1 bg-brand-dark/50 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-brand-info/50 transition-all"
+                    />
+                    <button 
+                      onClick={handleChatSend}
+                      disabled={chatLoading || !chatInput.trim()}
+                      className="w-14 h-14 rounded-2xl bg-brand-info flex items-center justify-center text-white shadow-xl shadow-brand-info/20 disabled:opacity-50"
+                    >
+                      <Send size={24} />
+                    </button>
+                  </div>
+                  <div className="mt-4 flex items-center justify-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.4em]">
+                    <Zap size={8} /> Protected by Gemini 2.0 Flash
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

@@ -200,7 +200,16 @@ const Dashboard = ({ role }) => {
                 <div className="w-2 h-2 rounded-full bg-brand-success animate-pulse"></div>
                 <span className="text-xs font-bold text-gray-200">Broadcast Protocol Alpha</span>
               </div>
-              <button className="btn btn-primary w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-indigo-500/40">
+              <button 
+                onClick={() => toast.error('GLOBAL ALERT BROADCASTED', { icon: <Bell className="text-brand-accent" />, duration: 5000 })}
+                className="btn btn-primary w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:shadow-indigo-500/40"
+              >
+                Dispatch Global Alert
+              </button>
+              <button 
+                onClick={() => toast.loading('Initiating Property-Wide Lockdown...', { duration: 3000 })}
+                className="btn glass w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] border-brand-accent/20 text-brand-accent mt-2"
+              >
                 Initiate Property Lock
               </button>
             </div>

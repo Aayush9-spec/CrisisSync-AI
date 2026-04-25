@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Guest from './pages/Guest';
 import Home from './pages/Home';
+import { Analytics, History, Settings } from './pages/PlaceholderPages';
 
 // Simple Error Boundary for Senior Engineering Grade
 class ErrorBoundary extends React.Component {
@@ -63,6 +64,9 @@ function App() {
                 <Route path="/sos" element={<Guest />} />
                 <Route path="/dashboard" element={<Dashboard role={role} />} />
                 <Route path="/incidents" element={<Dashboard role={role} />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </main>
