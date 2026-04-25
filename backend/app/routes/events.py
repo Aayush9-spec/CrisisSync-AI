@@ -23,7 +23,7 @@ async def quick_event(event: dict):
     return await process_event(event)
 
 
-@router.get("/simulate")
+@router.post("/simulate")
 async def simulate_event():
     """Simulate a random crisis event for demo purposes."""
     scenarios = [
