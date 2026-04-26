@@ -22,15 +22,15 @@ const Sidebar = () => {
 
   return (
     <aside className="w-72 bg-[#0b1220] border-r border-white/5 flex flex-col h-screen sticky top-0">
-      <div className="p-8 flex items-center gap-3">
-        <div className="bg-brand-accent p-2 rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+      <NavLink to="/" className="p-8 flex items-center gap-3 group transition-all">
+        <div className="bg-brand-accent p-2 rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.4)] group-hover:scale-110 transition-transform duration-500">
           <Shield className="text-white" size={28} />
         </div>
         <div className="flex flex-col">
           <span className="font-black text-2xl tracking-tighter text-white">CrisisSync <span className="text-brand-accent">AI</span></span>
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest -mt-1">Command Ops</span>
         </div>
-      </div>
+      </NavLink>
 
       <nav className="flex-1 px-4 mt-4 space-y-2">
         {menuItems.map((item, index) => (
