@@ -259,9 +259,20 @@ const Guest = () => {
               </div>
             </div>
             
-            <button onClick={() => setStatus('idle')} className="btn glass w-full py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest opacity-50 hover:opacity-100">
-              Cancel Alert
-            </button>
+            <div className="flex gap-4 w-full">
+              <button 
+                onClick={() => setShowChat(true)}
+                className="btn glass flex-1 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border-brand-success/20 text-brand-success"
+              >
+                <MessageSquare size={14} /> AI Guidance
+              </button>
+              <button 
+                onClick={() => setStatus('idle')} 
+                className="btn glass flex-1 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest opacity-50 hover:opacity-100"
+              >
+                Cancel Alert
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
