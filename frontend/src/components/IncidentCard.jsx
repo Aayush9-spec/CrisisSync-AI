@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, Shield, CheckCircle, Navigation, AlertCircle } from 'lucide-react';
+import { MapPin, Clock, Shield, CheckCircle, Navigation, AlertCircle, Camera, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const IncidentCard = ({ incident, role, onRespond, onResolve }) => {
