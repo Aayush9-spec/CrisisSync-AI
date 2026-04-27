@@ -66,8 +66,8 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@router.websocket("/ws")
-async def websocket_endpoint(ws: WebSocket, role: str = "guest"):
+@router.websocket("/ws/{role}/{client_id}")
+async def websocket_endpoint(ws: WebSocket, role: str = "guest", client_id: str = ""):
     await manager.connect(ws, role)
     try:
         while True:
