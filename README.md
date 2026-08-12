@@ -1,5 +1,5 @@
 # CrisisSync AI — Rapid Crisis Response in Hospitality
-
+ 
 ## Vision
 Hospitality venues face unpredictable, high-stakes emergencies that demand instantaneous, coordinated reactions. **CrisisSync AI** eliminates fragmented communication by creating a reliable bridge between distressed individuals, on-site staff, and emergency services using Google's Gemini AI.
 
@@ -31,7 +31,7 @@ Hospitality venues face unpredictable, high-stakes emergencies that demand insta
 
 ### Backend Setup
 1. `cd backend`
-2. `pip install -r requirements.txt`
+2. `pip install -r requirements.txt` 
 3. Create `.env` and add `GEMINI_API_KEY=your_key`
 4. `uvicorn main:app --reload`
 
