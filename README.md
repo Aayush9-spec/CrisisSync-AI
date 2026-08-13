@@ -9,7 +9,7 @@ Hospitality venues face unpredictable, high-stakes emergencies that demand insta
 - **Backend API**: [https://crisis-sync-backend-112365499000.us-central1.run.app](https://crisis-sync-backend-112365499000.us-central1.run.app)
 - **API Documentation**: [https://crisis-sync-backend-112365499000.us-central1.run.app/docs](https://crisis-sync-backend-112365499000.us-central1.run.app/docs)
 
-## Key Features
+## Key Features 
 - **AI-Powered Incident Detection**: Leverages Google Gemini to analyze reports, classify severity, and auto-assign response teams.
 - **Real-Time Command Dashboard**: Live WebSocket-powered coordination hub for management and security.
 - **Instant SOS Portal**: One-tap emergency reporting for guests with integrated AI safety guidance.
