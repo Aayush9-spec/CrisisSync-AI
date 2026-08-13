@@ -1,5 +1,5 @@
 # CrisisSync AI — Rapid Crisis Response in Hospitality
- 
+  
 ## Vision
 Hospitality venues face unpredictable, high-stakes emergencies that demand instantaneous, coordinated reactions. **CrisisSync AI** eliminates fragmented communication by creating a reliable bridge between distressed individuals, on-site staff, and emergency services using Google's Gemini AI.
 
