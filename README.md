@@ -25,7 +25,7 @@ Hospitality venues face unpredictable, high-stakes emergencies that demand insta
 ## Setup Instructions
 
 ### Prerequisites
-- Python 3.9+
+- Python 3.9+ 
 - Node.js 18+
 - [Optional] Google Gemini API Key
 
