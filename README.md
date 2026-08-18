@@ -16,7 +16,7 @@ Hospitality venues face unpredictable, high-stakes emergencies that demand insta
 - **Smart Response Recommendations**: AI-driven action items based on incident type and severity. 
 - **Performance Analytics**: Track response times and incident patterns to improve safety protocols.
 
-## Tech Stack
+## Tech Stack 
 - **AI**: Google Gemini 2.0 Flash (for analysis and chat)
 - **Backend**: FastAPI (Python), WebSockets
 - **Frontend**: React, Vite, Framer Motion, Lucide Icons
