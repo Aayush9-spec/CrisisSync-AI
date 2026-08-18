@@ -13,7 +13,7 @@ Hospitality venues face unpredictable, high-stakes emergencies that demand insta
 - **AI-Powered Incident Detection**: Leverages Google Gemini to analyze reports, classify severity, and auto-assign response teams.
 - **Real-Time Command Dashboard**: Live WebSocket-powered coordination hub for management and security.
 - **Instant SOS Portal**: One-tap emergency reporting for guests with integrated AI safety guidance.
-- **Smart Response Recommendations**: AI-driven action items based on incident type and severity.
+- **Smart Response Recommendations**: AI-driven action items based on incident type and severity. 
 - **Performance Analytics**: Track response times and incident patterns to improve safety protocols.
 
 ## Tech Stack
